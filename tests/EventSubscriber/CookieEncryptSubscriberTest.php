@@ -4,7 +4,7 @@ namespace Tourze\CookieEncryptBundle\Tests\EventSubscriber;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Cookie;
-use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -110,7 +110,7 @@ class CookieEncryptSubscriberTest extends TestCase
     public function testOnKernelRequestWithoutCookie(): void
     {
         $request = new Request();
-        $request->cookies = new ParameterBag();
+        $request->cookies = new InputBag();
 
         // 使用反射来访问 names 属性
         $namesProperty = new \ReflectionProperty($this->subscriber, 'names');
@@ -141,7 +141,7 @@ class CookieEncryptSubscriberTest extends TestCase
         $encryptedValue = base64_encode($this->subscriber->xorEncrypt($originalValue, $this->securityKey));
 
         $request = new Request();
-        $request->cookies = new ParameterBag(['sf_redirect' => $encryptedValue]);
+        $request->cookies = new InputBag(['sf_redirect' => $encryptedValue]);
 
         // 使用反射来访问 names 属性
         $namesProperty = new \ReflectionProperty($this->subscriber, 'names');
@@ -172,7 +172,7 @@ class CookieEncryptSubscriberTest extends TestCase
         $invalidBase64 = 'invalid-base64!@#';
 
         $request = new Request();
-        $request->cookies = new ParameterBag(['sf_redirect' => $invalidBase64]);
+        $request->cookies = new InputBag(['sf_redirect' => $invalidBase64]);
 
         // 使用反射来访问 names 属性
         $namesProperty = new \ReflectionProperty($this->subscriber, 'names');

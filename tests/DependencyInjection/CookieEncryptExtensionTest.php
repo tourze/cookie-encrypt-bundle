@@ -43,4 +43,53 @@ class CookieEncryptExtensionTest extends TestCase
             $container->hasAlias('Tourze\CookieEncryptBundle\EventSubscriber\CookieEncryptSubscriber')
         );
     }
+
+    /**
+     * 测试加载空配置数组
+     */
+    public function test_load_with_empty_configs(): void
+    {
+        $container = new ContainerBuilder();
+        $extension = new CookieEncryptExtension();
+
+        // 测试空配置数组
+        $emptyConfigs = [];
+
+        $this->expectNotToPerformAssertions();
+        $extension->load($emptyConfigs, $container);
+    }
+
+    /**
+     * 测试Extension别名
+     */
+    public function test_extension_alias(): void
+    {
+        $extension = new CookieEncryptExtension();
+        $this->assertEquals('cookie_encrypt', $extension->getAlias());
+    }
+
+    /**
+     * 测试配置加载后容器状态
+     */
+    public function test_container_after_load(): void
+    {
+        $container = new ContainerBuilder();
+        $extension = new CookieEncryptExtension();
+
+        $extension->load([], $container);
+
+        // 验证容器中是否有自动配置的服务
+        $definitions = $container->getDefinitions();
+        $this->assertNotEmpty($definitions, '容器应该包含服务定义');
+
+        // 验证是否加载了EventSubscriber相关的服务
+        $hasEventSubscriber = false;
+        foreach ($definitions as $definition) {
+            if (strpos($definition->getClass() ?? '', 'EventSubscriber') !== false) {
+                $hasEventSubscriber = true;
+                break;
+            }
+        }
+        $this->assertTrue($hasEventSubscriber, '应该加载EventSubscriber相关服务');
+    }
 }

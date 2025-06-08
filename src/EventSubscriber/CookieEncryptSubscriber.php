@@ -34,12 +34,17 @@ class CookieEncryptSubscriber implements EventSubscriberInterface
                 continue;
             }
             $v = $event->getRequest()->cookies->get($name);
-            $event->getRequest()->cookies->set($name, $this->xorEncrypt(base64_decode($v), $_ENV['COOKIE_XOR_SECURITY_KEY']));
+            $key = $_ENV['COOKIE_XOR_SECURITY_KEY'] ?? '';
+            $event->getRequest()->cookies->set($name, $this->xorEncrypt(base64_decode($v), $key));
         }
     }
 
     public function xorEncrypt(string $string, string $key): string
     {
+        if (empty(trim($key))) {
+            throw new \InvalidArgumentException('加密密钥不能为空');
+        }
+        
         $result = '';
         for ($i = 0; $i < strlen($string); ++$i) {
             $result .= $string[$i] ^ $key[$i % strlen($key)];
@@ -56,7 +61,8 @@ class CookieEncryptSubscriber implements EventSubscriberInterface
         // 检查所有要返回的Cookie
         foreach ($event->getResponse()->headers->getCookies() as $cookie) {
             if (in_array($cookie->getName(), $this->names) && !empty($cookie->getValue())) {
-                $cookie = $cookie->withValue(base64_encode($this->xorEncrypt($cookie->getValue(), $_ENV['COOKIE_XOR_SECURITY_KEY'])));
+                $key = $_ENV['COOKIE_XOR_SECURITY_KEY'] ?? '';
+                $cookie = $cookie->withValue(base64_encode($this->xorEncrypt($cookie->getValue(), $key)));
                 $event->getResponse()->headers->setCookie($cookie);
             }
         }

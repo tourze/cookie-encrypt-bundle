@@ -22,7 +22,7 @@ class CookieEncryptExtensionTest extends TestCase
         try {
             $extension->load($configs, $container);
             $this->assertTrue(true); // 如果没有异常，测试通过
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->fail('Extension load method threw an exception: ' . $e->getMessage());
         }
     }

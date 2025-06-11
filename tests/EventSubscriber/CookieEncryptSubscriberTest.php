@@ -192,7 +192,7 @@ class CookieEncryptSubscriberTest extends TestCase
                 }
             }
             $this->assertTrue(true); // 如果没有异常，测试通过
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->fail('Method threw an exception for invalid base64: ' . $e->getMessage());
         }
     }

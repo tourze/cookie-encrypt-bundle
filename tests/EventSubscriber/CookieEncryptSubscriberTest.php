@@ -43,7 +43,6 @@ class CookieEncryptSubscriberTest extends TestCase
         $this->assertArrayHasKey(KernelEvents::REQUEST, $events);
         $this->assertArrayHasKey(KernelEvents::RESPONSE, $events);
         $this->assertEquals('onKernelRequest', $events[KernelEvents::REQUEST]);
-        $this->assertIsArray($events[KernelEvents::RESPONSE]);
         $this->assertEquals('onKernelResponse', $events[KernelEvents::RESPONSE][0]);
         $this->assertEquals(-200, $events[KernelEvents::RESPONSE][1]);
     }

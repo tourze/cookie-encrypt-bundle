@@ -6,6 +6,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Tourze\CookieEncryptBundle\Exception\InvalidEncryptionKeyException;
 
 /**
  * 一些特殊的部署环境，例如Azure，他们的waf特别严格，cookie内容需要做一层加密以防止被识别
@@ -42,7 +43,7 @@ class CookieEncryptSubscriber implements EventSubscriberInterface
     public function xorEncrypt(string $string, string $key): string
     {
         if (empty(trim($key))) {
-            throw new \InvalidArgumentException('加密密钥不能为空');
+            throw new InvalidEncryptionKeyException('加密密钥不能为空');
         }
         
         $result = '';

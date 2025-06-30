@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Tourze\CookieEncryptBundle\EventSubscriber\CookieEncryptSubscriber;
+use Tourze\CookieEncryptBundle\Exception\InvalidEncryptionKeyException;
 
 class CookieEncryptSubscriberTest extends TestCase
 {
@@ -209,10 +210,10 @@ class CookieEncryptSubscriberTest extends TestCase
         $names = $namesProperty->getValue($this->subscriber);
 
         // 手动执行加密逻辑
-        foreach ($response->headers->getCookies() as $cookie) {
-            if (in_array($cookie->getName(), $names) && !empty($cookie->getValue())) {
-                $cookie = $cookie->withValue(base64_encode($this->subscriber->xorEncrypt($cookie->getValue(), $this->securityKey)));
-                $response->headers->setCookie($cookie);
+        foreach ($response->headers->getCookies() as $cookieItem) {
+            if (in_array($cookieItem->getName(), $names) && !empty($cookieItem->getValue())) {
+                $encryptedCookie = $cookieItem->withValue(base64_encode($this->subscriber->xorEncrypt($cookieItem->getValue(), $this->securityKey)));
+                $response->headers->setCookie($encryptedCookie);
             }
         }
 
@@ -235,10 +236,10 @@ class CookieEncryptSubscriberTest extends TestCase
         $names = $namesProperty->getValue($this->subscriber);
 
         // 手动执行加密逻辑
-        foreach ($response->headers->getCookies() as $cookie) {
-            if (in_array($cookie->getName(), $names) && !empty($cookie->getValue())) {
-                $cookie = $cookie->withValue(base64_encode($this->subscriber->xorEncrypt($cookie->getValue(), $this->securityKey)));
-                $response->headers->setCookie($cookie);
+        foreach ($response->headers->getCookies() as $cookieItem) {
+            if (in_array($cookieItem->getName(), $names) && !empty($cookieItem->getValue())) {
+                $encryptedCookie = $cookieItem->withValue(base64_encode($this->subscriber->xorEncrypt($cookieItem->getValue(), $this->securityKey)));
+                $response->headers->setCookie($encryptedCookie);
             }
         }
 
@@ -269,10 +270,10 @@ class CookieEncryptSubscriberTest extends TestCase
         $names = $namesProperty->getValue($this->subscriber);
 
         // 手动执行加密逻辑
-        foreach ($response->headers->getCookies() as $cookie) {
-            if (in_array($cookie->getName(), $names) && !empty($cookie->getValue())) {
-                $cookie = $cookie->withValue(base64_encode($this->subscriber->xorEncrypt($cookie->getValue(), $this->securityKey)));
-                $response->headers->setCookie($cookie);
+        foreach ($response->headers->getCookies() as $cookieItem) {
+            if (in_array($cookieItem->getName(), $names) && !empty($cookieItem->getValue())) {
+                $encryptedCookie = $cookieItem->withValue(base64_encode($this->subscriber->xorEncrypt($cookieItem->getValue(), $this->securityKey)));
+                $response->headers->setCookie($encryptedCookie);
             }
         }
 
@@ -298,10 +299,10 @@ class CookieEncryptSubscriberTest extends TestCase
         $names = $namesProperty->getValue($this->subscriber);
 
         // 手动执行加密逻辑
-        foreach ($response->headers->getCookies() as $cookie) {
-            if (in_array($cookie->getName(), $names) && !empty($cookie->getValue())) {
-                $cookie = $cookie->withValue(base64_encode($this->subscriber->xorEncrypt($cookie->getValue(), $this->securityKey)));
-                $response->headers->setCookie($cookie);
+        foreach ($response->headers->getCookies() as $cookieItem) {
+            if (in_array($cookieItem->getName(), $names) && !empty($cookieItem->getValue())) {
+                $encryptedCookie = $cookieItem->withValue(base64_encode($this->subscriber->xorEncrypt($cookieItem->getValue(), $this->securityKey)));
+                $response->headers->setCookie($encryptedCookie);
             }
         }
 
@@ -333,10 +334,10 @@ class CookieEncryptSubscriberTest extends TestCase
         $names = $namesProperty->getValue($this->subscriber);
 
         // 手动执行加密逻辑
-        foreach ($response->headers->getCookies() as $cookie) {
-            if (in_array($cookie->getName(), $names) && !empty($cookie->getValue())) {
-                $cookie = $cookie->withValue(base64_encode($this->subscriber->xorEncrypt($cookie->getValue(), $this->securityKey)));
-                $response->headers->setCookie($cookie);
+        foreach ($response->headers->getCookies() as $cookieItem) {
+            if (in_array($cookieItem->getName(), $names) && !empty($cookieItem->getValue())) {
+                $encryptedCookie = $cookieItem->withValue(base64_encode($this->subscriber->xorEncrypt($cookieItem->getValue(), $this->securityKey)));
+                $response->headers->setCookie($encryptedCookie);
             }
         }
 
@@ -348,13 +349,13 @@ class CookieEncryptSubscriberTest extends TestCase
         $foundEncrypted = false;
         $foundUnchanged = false;
 
-        foreach ($cookies as $cookie) {
-            if ($cookie->getName() === 'sf_redirect') {
-                $decryptedValue = $this->subscriber->xorEncrypt(base64_decode($cookie->getValue()), $this->securityKey);
+        foreach ($cookies as $cookieItem) {
+            if ($cookieItem->getName() === 'sf_redirect') {
+                $decryptedValue = $this->subscriber->xorEncrypt(base64_decode($cookieItem->getValue()), $this->securityKey);
                 $this->assertEquals('value1', $decryptedValue);
                 $foundEncrypted = true;
-            } elseif ($cookie->getName() === 'other_cookie') {
-                $this->assertEquals('value2', $cookie->getValue());
+            } elseif ($cookieItem->getName() === 'other_cookie') {
+                $this->assertEquals('value2', $cookieItem->getValue());
                 $foundUnchanged = true;
             }
         }
@@ -398,7 +399,7 @@ class CookieEncryptSubscriberTest extends TestCase
     public function test_missing_security_key(): void
     {
         // 测试空密钥抛出异常
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidEncryptionKeyException::class);
         $this->expectExceptionMessage('加密密钥不能为空');
         
         $this->subscriber->xorEncrypt('test_data', '');
@@ -410,7 +411,7 @@ class CookieEncryptSubscriberTest extends TestCase
     public function test_whitespace_security_key(): void
     {
         // 测试纯空格密钥抛出异常
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidEncryptionKeyException::class);
         $this->expectExceptionMessage('加密密钥不能为空');
         
         $this->subscriber->xorEncrypt('test_data', '   ');
@@ -604,7 +605,7 @@ class CookieEncryptSubscriberTest extends TestCase
         );
 
         // 预期会抛出异常，因为环境变量不存在
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidEncryptionKeyException::class);
         $this->expectExceptionMessage('加密密钥不能为空');
         
         $this->subscriber->onKernelRequest($event);
@@ -649,7 +650,7 @@ class CookieEncryptSubscriberTest extends TestCase
         );
 
         // 预期会抛出异常，因为环境变量不存在
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidEncryptionKeyException::class);
         $this->expectExceptionMessage('加密密钥不能为空');
         
         $this->subscriber->onKernelResponse($event);

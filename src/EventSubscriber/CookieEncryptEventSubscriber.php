@@ -11,8 +11,9 @@ use Tourze\CookieEncryptBundle\Exception\InvalidEncryptionKeyException;
 /**
  * 一些特殊的部署环境，例如Azure，他们的waf特别严格，cookie内容需要做一层加密以防止被识别
  */
-class CookieEncryptSubscriber implements EventSubscriberInterface
+class CookieEncryptEventSubscriber implements EventSubscriberInterface
 {
+    /** @var array<string> */
     protected array $names = [
         'sf_redirect',
     ];
@@ -35,17 +36,23 @@ class CookieEncryptSubscriber implements EventSubscriberInterface
                 continue;
             }
             $v = $event->getRequest()->cookies->get($name);
+            if (!is_string($v)) {
+                continue;
+            }
             $key = $_ENV['COOKIE_XOR_SECURITY_KEY'] ?? '';
-            $event->getRequest()->cookies->set($name, $this->xorEncrypt(base64_decode($v), $key));
+            $decoded = base64_decode($v, true);
+            if (false !== $decoded) {
+                $event->getRequest()->cookies->set($name, $this->xorEncrypt($decoded, $key));
+            }
         }
     }
 
     public function xorEncrypt(string $string, string $key): string
     {
-        if (empty(trim($key))) {
-            throw new InvalidEncryptionKeyException('加密密钥不能为空');
+        if ('' === trim($key)) {
+            throw new InvalidEncryptionKeyException('Encryption key cannot be empty');
         }
-        
+
         $result = '';
         for ($i = 0; $i < strlen($string); ++$i) {
             $result .= $string[$i] ^ $key[$i % strlen($key)];
@@ -61,7 +68,7 @@ class CookieEncryptSubscriber implements EventSubscriberInterface
     {
         // 检查所有要返回的Cookie
         foreach ($event->getResponse()->headers->getCookies() as $cookie) {
-            if (in_array($cookie->getName(), $this->names) && !empty($cookie->getValue())) {
+            if (in_array($cookie->getName(), $this->names, true) && '' !== $cookie->getValue() && null !== $cookie->getValue()) {
                 $key = $_ENV['COOKIE_XOR_SECURITY_KEY'] ?? '';
                 $cookie = $cookie->withValue(base64_encode($this->xorEncrypt($cookie->getValue(), $key)));
                 $event->getResponse()->headers->setCookie($cookie);

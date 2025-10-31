@@ -1,18 +1,19 @@
 <?php
 
-namespace Tourze\CookieEncryptBundle\Tests;
+declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
+namespace CookieEncryptBundle\Tests;
+
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\CookieEncryptBundle\CookieEncryptBundle;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractBundleTestCase;
 
-class CookieEncryptBundleTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(CookieEncryptBundle::class)]
+#[RunTestsInSeparateProcesses]
+final class CookieEncryptBundleTest extends AbstractBundleTestCase
 {
-    /**
-     * 测试 Bundle 初始化
-     */
-    public function testBundleInitialization(): void
-    {
-        $bundle = new CookieEncryptBundle();
-        $this->assertInstanceOf(CookieEncryptBundle::class, $bundle);
-    }
 }

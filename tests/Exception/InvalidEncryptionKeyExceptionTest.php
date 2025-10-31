@@ -1,17 +1,23 @@
 <?php
 
-namespace Tourze\CookieEncryptBundle\Tests\Unit\Exception;
+namespace Tourze\CookieEncryptBundle\Tests\Exception;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tourze\CookieEncryptBundle\Exception\InvalidEncryptionKeyException;
+use Tourze\PHPUnitBase\AbstractExceptionTestCase;
 
-class InvalidEncryptionKeyExceptionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(InvalidEncryptionKeyException::class)]
+final class InvalidEncryptionKeyExceptionTest extends AbstractExceptionTestCase
 {
     public function testCanBeInstantiated(): void
     {
         $exception = new InvalidEncryptionKeyException();
-        self::assertInstanceOf(InvalidEncryptionKeyException::class, $exception);
-        self::assertInstanceOf(\RuntimeException::class, $exception);
+        self::assertSame('', $exception->getMessage());
+        self::assertSame(0, $exception->getCode());
+        self::assertNull($exception->getPrevious());
     }
 
     public function testCanBeInstantiatedWithMessage(): void

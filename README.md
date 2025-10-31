@@ -1,52 +1,147 @@
 # Cookie Encrypt Bundle
 
-这个 Symfony Bundle 用于自动加密和解密特定的 Cookie，特别适用于某些 WAF 特别严格的部署环境（例如 Azure）。
+[English](README.md) | [中文](README.zh-CN.md)
 
-## 功能
+[![PHP Version](https://img.shields.io/packagist/php-v/tourze/cookie-encrypt-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/cookie-encrypt-bundle)
+[![Latest Version](https://img.shields.io/packagist/v/tourze/cookie-encrypt-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/cookie-encrypt-bundle)
+[![License](https://img.shields.io/packagist/l/tourze/cookie-encrypt-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/cookie-encrypt-bundle)
+[![Total Downloads](https://img.shields.io/packagist/dt/tourze/cookie-encrypt-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/cookie-encrypt-bundle)
 
-- 自动加密响应中的特定 Cookie
-- 自动解密请求中的特定 Cookie
-- 使用 XOR 加密算法和 base64 编码
+A Symfony Bundle for automatically encrypting and decrypting specific cookies, particularly useful for deployment environments with strict WAF (Web Application Firewall) rules, such as Azure.
 
-## 安装
+## Features
 
-使用 Composer 安装:
+- Automatic encryption of specified cookies in responses
+- Automatic decryption of specified cookies in requests
+- Uses XOR encryption algorithm with base64 encoding
+- Zero configuration after initial setup
+- Seamless integration with Symfony's event system
+
+## Requirements
+
+- PHP 8.1 or higher
+- Symfony 6.4 or higher
+
+## Installation
+
+Install via Composer:
 
 ```bash
 composer require tourze/cookie-encrypt-bundle
 ```
 
-## 配置
+## Configuration
 
-1. 在 `.env` 文件中设置加密密钥:
+### 1. Set Encryption Key
 
-```
+Add the encryption key to your `.env` file:
+
+```env
 COOKIE_XOR_SECURITY_KEY=your_secure_key_here
 ```
 
-2. 在 `config/bundles.php` 中注册 Bundle:
+⚠️ **Important**: 
+- Use a strong, random encryption key
+- Keep the key secret and never commit it to version control
+- Consider using different keys for different environments
+
+### 2. Register the Bundle
+
+If not using Symfony Flex, register the bundle in `config/bundles.php`:
 
 ```php
 return [
-    // ...其他 bundles
+    // ...other bundles
     Tourze\CookieEncryptBundle\CookieEncryptBundle::class => ['all' => true],
 ];
 ```
 
-## 使用
+## Usage
 
-安装并配置后，Bundle 会自动加密和解密以下 Cookie:
+Once installed and configured, the bundle automatically handles encryption/decryption for the following cookies:
 
-- sf_redirect
+- `sf_redirect` - Symfony's redirect cookie
 
-## 测试
+The bundle works transparently:
+- **On Request**: Automatically decrypts encrypted cookies before your application processes them
+- **On Response**: Automatically encrypts cookies before sending them to the client
 
-运行测试:
+### How It Works
 
-```bash
-./vendor/bin/phpunit packages/cookie-encrypt-bundle/tests
+1. When a request arrives, the `CookieEncryptSubscriber` checks for encrypted cookies
+2. If found, it decrypts them using the XOR algorithm and replaces the encrypted values
+3. Your application works with the decrypted values normally
+4. Before sending the response, the subscriber encrypts the cookie values again
+
+## Advanced Configuration
+
+### Custom Cookie Names
+
+To encrypt additional cookies, extend the `CookieEncryptSubscriber` class:
+
+```php
+namespace App\EventSubscriber;
+
+use Tourze\CookieEncryptBundle\EventSubscriber\CookieEncryptSubscriber;
+
+class CustomCookieEncryptSubscriber extends CookieEncryptSubscriber
+{
+    protected array $names = [
+        'sf_redirect',
+        'my_custom_cookie',
+        'another_cookie',
+    ];
+}
 ```
 
-## 许可证
+Then override the service definition in your `config/services.yaml`:
+
+```yaml
+services:
+    Tourze\CookieEncryptBundle\EventSubscriber\CookieEncryptSubscriber:
+        class: App\EventSubscriber\CustomCookieEncryptSubscriber
+```
+
+## Security Considerations
+
+- The XOR encryption is designed for WAF bypass, not cryptographic security
+- Always use HTTPS in production to prevent man-in-the-middle attacks
+- Rotate encryption keys periodically
+- Store encryption keys securely (use Symfony secrets management)
+
+## Testing
+
+Run the test suite:
+
+```bash
+# From the monorepo root
+./vendor/bin/phpunit packages/cookie-encrypt-bundle/tests
+
+# Run with PHPStan
+php -d memory_limit=2G ./vendor/bin/phpstan analyse packages/cookie-encrypt-bundle
+```
+
+## Troubleshooting
+
+### InvalidEncryptionKeyException
+
+This exception is thrown when:
+- The `COOKIE_XOR_SECURITY_KEY` environment variable is not set
+- The encryption key is empty or contains only whitespace
+
+**Solution**: Ensure you have set a valid encryption key in your `.env` file.
+
+### Cookies Not Being Encrypted
+
+Check that:
+1. The bundle is properly registered
+2. The encryption key is set
+3. The cookie name is in the list of cookies to encrypt
+
+## Contributing
+
+Please see the main monorepo README for contribution guidelines.
+
+## License
 
 MIT

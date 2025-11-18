@@ -3,12 +3,7 @@
 namespace Tourze\CookieEncryptBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Tourze\BundleDependency\BundleDependencyInterface;
 
-class CookieEncryptBundle extends Bundle implements BundleDependencyInterface
+class CookieEncryptBundle extends Bundle
 {
-    public static function getBundleDependencies(): array
-    {
-        return [];
-    }
 }
